@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>Contact Us</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" type="text/css" href="assets/bootstrap/css/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="fonts/iconic/css/material-design-iconic-font.min.css">
+	<link rel="stylesheet" type="text/css" href="assets/util.css">
+	<link rel="stylesheet" type="text/css" href="assets/main.css">
+	<script src="assets/jquery/jquery-3.2.1.min.js"></script>
+	<script src="assets/main.js"></script>
+	<script src='https://www.google.com/recaptcha/api.js'></script>
+	<script src="assets/bootstrap/js/popper.js"></script>
+	<script src="assets/bootstrap/js/bootstrap.min.js"></script>
+</head>
+<body>
+	<div id="myModal" class="modal fade" role="dialog">
+		<div class="modal-dialog">		
+			<div class="modal-content">
+				<div class="modal-header">
+				<h4 class="modal-title">Alert</h4>
+				<button type="button" class="close" data-dismiss="modal">&times;</button>
+				</div>
+				<div class="modal-body">
+				<div id="modal-input-text"></div>
+				</div>
+				<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="container-contact100">
+		<div class="wrap-contact100">
+			<form class="contact100-form validate-form" method="post" action="" id="form1" autocomplete="off">
+				<span class="contact100-form-title">
+					Contact Us
+				</span>
+
+				<label class="label-input100" for="first-name">Your Name *</label>
+				<div class="wrap-input100 rs1 validate-input">
+					<input id="first-name" class="input100" type="text" name="first-name" placeholder="First name">
+					<span class="focus-input100"></span>
+				</div>
+				<div class="wrap-input100 rs1 validate-input">
+					<input class="input100" type="text" name="last-name" placeholder="Last name">
+					<span class="focus-input100"></span>
+				</div>
+
+				<label class="label-input100" for="email">Email Address *</label>
+				<div class="wrap-input100 validate-input">
+					<input id="email" class="input100" type="text" name="email" placeholder="Eg. username@example.com">
+					<span class="focus-input100"></span>
+					<div id="email-error"></div>
+				</div>
+
+				<label class="label-input100" for="message">Message *</label>
+				<div class="wrap-input100 validate-input">
+					<textarea id="message" class="input100" name="message" placeholder="Please enter your comments..."></textarea>
+					<span class="focus-input100"></span>
+				</div>
+
+				<label class="label-input100">Recapcha *</label>
+				<div class="wrap-input100 ">
+				<div class="g-recaptcha" data-sitekey="6Lf_FG4UAAAAAC9BFpYDTo8GFEpYQV5OJiGCmEQ5" id="re-captcha"></div>
+				<div id="g-recaptcha-error"></div>
+					<span class="focus-input100"></span>
+				</div>
+			
+				<div class="container-contact100-form-btn">
+					<button class="contact100-form-btn">
+						<span>
+							Submit
+							<i class="zmdi zmdi-arrow-right m-l-8"></i>
+						</span>
+					</button>
+				</div>
+			</form>
+		</div>
+	</div>
+	<script>
+/*
+PHP-SMTP-AJAX-Mailer Script w/ Validator
+Original author: SiddheshNan(https://siddhesh.me)
+https://github.com/SiddheshNan/PHP-SMTP-AJAX-Mailer
+*/
+
+$(document).ready(function() {
+  var form1 = $("#form1");
+  form1.on("submit", function(e) {
+    e.preventDefault();
+    var firstname = $("#first-name").val();
+	var lastname = $("#last-name").val();
+    var email = $("#email").val();
+    var message = $("#message").val();
+    
+    if(grecaptcha.getResponse().length == 0) {
+        document.getElementById("re-captcha").focus(); 
+        document.getElementById('g-recaptcha-error').innerHTML = '<span style="color:red;">Please tick the Checkbox.</span>';
+    }
+
+else {
+    $.ajax({
+      type: "POST",
+       url: "send.php",
+      data: {
+        "firstname":firstname,
+		"lastname":lastname,
+        "email":email,
+        "message":message,
+        "g-recaptcha-response":grecaptcha.getResponse()
+      },
+      success: function(response) {
+          
+    console.log(response);
+    
+    if (response.Err == 'Invalid Email'){
+    grecaptcha.reset();
+    document.getElementById("email").focus(); 
+    document.getElementById('email-error').innerHTML = '<span style="color:red;">Please enter valid email.</span>';
+    }
+    
+    if (response.Err == 'Captcha Error'){
+    grecaptcha.reset();
+    document.getElementById("re-captcha").focus(); 
+    document.getElementById('g-recaptcha-error').innerHTML = '<span style="color:red;">Please check the Checkbox.</span>';
+    }
+    
+    else if (response.Output == 'Success'){
+     grecaptcha.reset();
+     $('#form1')[0].reset();
+     $("#email-error").remove();
+     $("#g-recaptcha-error").remove();
+     document.getElementById('modal-input-text').innerHTML = '<div class="alert alert-success fade show"><strong>Success!</strong> Your message has been sent successfully.</div>';
+     $('#myModal').modal('show'); 
+    }
+    
+    else if (response.Output == 'Error'){
+     document.getElementById('modal-input-text').innerHTML = '<div class="alert alert-danger fade show"><strong>Error!</strong> A problem has been occurred while submitting your data.</div>';
+        $('#myModal').modal('show'); 
+    }
+    
+    }
+})
+}
+});
+});
+	
+</script>
+</body>
+</html>
